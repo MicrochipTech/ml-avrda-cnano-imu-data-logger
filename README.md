@@ -30,7 +30,7 @@ The data streamer firmware will output sensor data over the UART port with the f
 No support for other sensors currently.
 
 ## Streaming Format Selection
-To select the data streaming format, set the `DATA_STREAMER_FORMAT` macro in `firmware/src/app_config.h` to the appropriate value as explained in the table below.
+To select the data streaming format, set the `DATA_STREAMER_FORMAT` macro in `app_config.h` to the appropriate value as explained in the table below.
 
 | Streaming Format | app_config.h Configuration Value |
 | --- | --- |
