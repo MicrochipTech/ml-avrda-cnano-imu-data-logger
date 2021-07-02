@@ -41,7 +41,6 @@
 #include <string.h>
 #include "sensor.h"
 #include "bmi160.h"
-#include "i2c.h"
 
 // Macro function to get the proper Macro defines corresponding to SNSR_SAMPLE_RATE
 #if (SNSR_SAMPLE_RATE_UNIT == SNSR_SAMPLE_RATE_UNIT_KHZ)
@@ -59,43 +58,77 @@
 #define _SNSRGYRORANGEEXPR(x) __SNSRGYRORANGEMACRO(x)
 #define _GET_IMU_GYRO_RANGE_MACRO() _SNSRGYRORANGEEXPR(SNSR_GYRO_RANGE)
 
+typedef struct
+{
+    size_t len;
+    void *data;
+}buf_t;
+
+static twi0_operations_t read_complete_handler(void *ptr)
+{
+    I2C0_SetBuffer(((buf_t *)ptr)->data,((buf_t*)ptr)->len);
+    I2C0_SetDataCompleteCallback(I2C0_SetReturnStopCallback, NULL);
+    return I2C0_RESTART_READ;
+}
+
 int8_t bmi160_i2c_read (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
-   
-    uint8_t ret;
-    uint8_t reg_addr_arr[1] = {reg_addr};
-    uint8_t address_return_code = I2C_0_SendData((dev_addr << 1), reg_addr_arr, 1);
+    twi0_error_t ret;
+    buf_t    readbuffer;
+    
+    readbuffer.data = data;
+    readbuffer.len = len;
+    
+    while((ret = I2C0_Open(dev_addr)) == I2C0_BUSY); // sit here until we get the bus..
+    I2C0_SetDataCompleteCallback(read_complete_handler, &readbuffer);
+    I2C0_SetAddressNackCallback(I2C0_SetRestartWriteCallback, NULL);
+    I2C0_SetBuffer(&reg_addr, 1);
+    I2C0_MasterOperation(0);
+    while((ret = I2C0_Close()) == I2C0_BUSY); // sit here until finished.
 
-    if(address_return_code != 1){
-        return BMI160_E_COM_FAIL;    
+    if (ret != I2C0_NOERR) {
+        return BMI160_E_COM_FAIL;
     }
-    uint8_t recieve_len = (uint8_t)len;
-    ret = I2C_0_GetData((dev_addr << 1), data, recieve_len);
+    
+    return BMI160_OK;
+}
 
-    I2C_0_EndSession();
-    if(ret == recieve_len){
-        return BMI160_OK;
-    }
-
-    return BMI160_E_COM_FAIL;
+static twi0_operations_t write_complete_handler(void *ptr)
+{
+    I2C0_SetBuffer(((buf_t *)ptr)->data,((buf_t*)ptr)->len);
+    I2C0_SetDataCompleteCallback(I2C0_SetReturnStopCallback, NULL);
+    return I2C0_RESTART_WRITE;
 }
 
 int8_t bmi160_i2c_write (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
     
-    uint8_t buff [16];
+    twi0_error_t ret;
+//    buf_t    writebuffer;
+//    
+//    writebuffer.data = data;
+//    writebuffer.len = len;
+    uint8_t buff [SNSR_COM_BUF_SIZE];
+    
+    if (len + 1 > SNSR_COM_BUF_SIZE)
+        return BMI160_E_COM_FAIL;
     
     buff[0] = reg_addr;
-    for (uint8_t i = 0; i < len; i++) {
-        buff[1+i] = data[i];
+    for (int i = 0; i < len; i++) {
+        buff[i+1] = data[i];
+    }
+    
+    while((ret = I2C0_Open(dev_addr)) == I2C0_BUSY); // sit here until we get the bus..
+//    I2C0_SetDataCompleteCallback(write_complete_handler, &writebuffer);
+    I2C0_SetAddressNackCallback(I2C0_SetRestartWriteCallback, NULL); //NACK polling?
+    I2C0_SetBuffer(buff, len+1);
+//    I2C0_SetBuffer(&reg_addr, 1);
+    I2C0_MasterOperation(0);
+    while((ret = I2C0_Close()) == I2C0_BUSY); // sit here until finished.
+    
+    if (ret != I2C0_NOERR) {
+        return BMI160_E_COM_FAIL;
     }
 
-    uint8_t data_send_return_code = I2C_0_SendData((dev_addr << 1), buff, len+1);
-    I2C_0_EndSession();
-    
-    if(data_send_return_code == len+1){
-        return BMI160_OK;
-    }    
- 
-    return BMI160_E_COM_FAIL;
+    return BMI160_OK;
 }
 
 int bmi160_sensor_read(struct sensor_device_t *sensor, struct sensor_buffer_t *buffer)

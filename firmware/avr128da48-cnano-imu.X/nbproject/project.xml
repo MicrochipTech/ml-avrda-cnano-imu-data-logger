@@ -4,7 +4,7 @@
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>avr128da48-cnano-imu</name>
-            <creation-uuid>cd0c5220-95a7-443a-9f90-7f2c62c99e35</creation-uuid>
+            <creation-uuid>6e8f6c52-c41b-4ad2-9b34-4bd7c58b6afe</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>
             <cpp-extensions/>
@@ -15,10 +15,15 @@
             <sourceRootList>
                 <sourceRootElem>.</sourceRootElem>
                 <sourceRootElem>../bmi160</sourceRootElem>
+                <sourceRootElem>../Icm426xx</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
-                    <name>default</name>
+                    <name>AVR128DA48_CNANO_BMI160</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>AVR128DA48_CNANO_ICM42688</name>
                     <type>2</type>
                 </confElem>
             </confList>

@@ -60,7 +60,7 @@
 
 // Data streaming formatting selection
 #ifndef DATA_STREAMER_FORMAT
-#define DATA_STREAMER_FORMAT    DATA_STREAMER_FORMAT_MDV
+#define DATA_STREAMER_FORMAT    DATA_STREAMER_FORMAT_ASCII
 #endif
 
 // IMU sampling rate in units of SNSR_SAMPLE_RATE_UNIT
@@ -136,6 +136,20 @@
 #define snsr_sleep_ms      sleep_ms
 #define snsr_sleep_us      sleep_us
 
+// Some convenience macros
+#define __nop__()       do {} while (0)
+#define LED_BLUE_On     LED0_SetLow
+#define LED_BLUE_Off    LED0_SetHigh
+#define LED_GREEN_On    LED0_SetLow
+#define LED_GREEN_Off   LED0_SetHigh
+#define LED_GREEN_Toggle    LED0_Toggle
+#define LED_RED_On      LED0_SetLow
+#define LED_RED_Off     LED0_SetHigh
+#define LED_YELLOW_On   LED0_SetLow
+#define LED_YELLOW_Off  LED0_SetHigh
+#define LED_ALL_On()    do { LED_YELLOW_On(); LED_GREEN_On(); LED_RED_On(); LED_BLUE_On(); } while (0)
+#define LED_ALL_Off()   do { LED_YELLOW_Off(); LED_GREEN_Off(); LED_RED_Off(); LED_BLUE_Off(); } while (0)
+
 #define STREAM_FORMAT_IS(X) (defined(DATA_STREAMER_FORMAT_ ## X) && (DATA_STREAMER_FORMAT_ ## X == DATA_STREAMER_FORMAT))
 
 #define SNSR_SAMPLE_RATE_UNIT_STR ((SNSR_SAMPLE_RATE_UNIT == SNSR_SAMPLE_RATE_UNIT_KHZ) ? "kHz" : "Hz")
@@ -144,6 +158,15 @@
 #elif SNSR_TYPE_ICM42688
 #define SNSR_NAME "icm42688"
 #endif
+
+// Macros for portability
+#define TC_TIMER_STATUS void
+#define SYS_Initialize(x)  SYSTEM_Initialize()
+#define TC_TimerStart   __nop__
+#define SYS_Tasks       __nop__
+#define MIKRO_INT_CallbackRegister PORTD_MIKRO1_INT_SetInterruptHandler
+#define TC_TimerGet TCA0_ReadTimer
+#define TC_TimerCallbackRegister TCA0_SetOVFIsrCallback
 
 #ifdef	__cplusplus
 extern "C" {
