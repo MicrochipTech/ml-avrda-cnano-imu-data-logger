@@ -49,65 +49,6 @@ static volatile unsigned int tickrate = 0;
 static struct sensor_device_t sensor;
 static struct sensor_buffer_t snsr_buffer;
 
-#if STREAM_FORMAT_IS(SMLSS)
-static SNSR_DATA_TYPE packet_data_buffer[SNSR_NUM_AXES * SNSR_SAMPLES_PER_PACKET];
-#define PACKET_BUFFER_BYTE_LEN (SNSR_NUM_AXES * SNSR_SAMPLES_PER_PACKET * sizeof(SNSR_DATA_TYPE))
-static int num_packets = 0;
-static char json_config_str[512];
-
-static void connect_reconnect()
-{
-    uint32_t time = read_timer_ms();
-
-    printf("%s\r\n", json_config_str);
-    while(!ssi_io_s.connected) {
-        if(SERCOM5_USART_ReadCountGet() >= CONNECT_CHARS)
-        {
-            ssi_try_connect();
-        }
-        if ((read_timer_ms() - time) >= 1000) {
-            time = read_timer_ms();
-            printf("%s\r\n", json_config_str);
-        }
-    }
-    buffer_reset(&snsr_buffer);
-}
-
-static void build_json_config(void)
-{
-    int written=0;
-    int snsr_index = 0;
-    written += sprintf(json_config_str, "{\"version\":%d, \"sample_rate\":%d,"
-                        "\"samples_per_packet\":%d,"
-                        "\"column_location\":{"
-                        , SSI_JSON_CONFIG_VERSION, SNSR_SAMPLE_RATE, SNSR_SAMPLES_PER_PACKET);
-    #if SNSR_USE_ACCEL_X
-    written += sprintf(json_config_str+written, "\"AccelerometerX\":%d,", snsr_index++);
-    #endif
-    #if SNSR_USE_ACCEL_Y
-    written += sprintf(json_config_str+written, "\"AccelerometerY\":%d,", snsr_index++);
-    #endif
-    #if SNSR_USE_ACCEL_Z
-    written += sprintf(json_config_str+written, "\"AccelerometerZ\":%d,", snsr_index++);
-    #endif
-    #if SNSR_USE_GYRO_X
-    written += sprintf(json_config_str+written, "\"GyroscopeX\":%d,", snsr_index++);
-    #endif
-    #if SNSR_USE_GYRO_Y
-    written += sprintf(json_config_str+written, "\"GyroscopeY\":%d,", snsr_index++);
-    #endif
-    #if SNSR_USE_GYRO_Z
-    written += sprintf(json_config_str+written, "\"GyroscopeZ\":%d", snsr_index++);
-    #endif
-    if(json_config_str[written-1] == ',')
-    {
-        written--;
-    }
-    sprintf(json_config_str+written, "}}");
-}
-
-#endif //STREAM_FORMAT_IS(SMLSS)
-
 void Ticker_Callback(void) {
     static unsigned int mstick = 0;
 
@@ -148,6 +89,87 @@ void SNSR_ISR_HANDLER(void) {
     
     sensor.status = sensor_read(&sensor, &snsr_buffer);
 }
+
+size_t UART_Read(uint8_t *ptr, const size_t nbytes) {
+    size_t bytecnt;
+    for (bytecnt=0; bytecnt < nbytes; bytecnt++) {
+        *(ptr + bytecnt) = USART1_Read();
+    }
+    return bytecnt;
+}
+
+size_t UART_Write(uint8_t *ptr, const size_t nbytes) {
+    size_t bytecnt;
+    for (bytecnt=0; bytecnt < nbytes; bytecnt++) {
+        USART1_Write(*(ptr + bytecnt));
+    }
+    return bytecnt;
+}
+
+#if STREAM_FORMAT_IS(SMLSS)
+#define PACKET_BUFFER_BYTE_LEN (SNSR_NUM_AXES * SNSR_SAMPLES_PER_PACKET * sizeof(SNSR_DATA_TYPE))
+#define SML_MAX_CFG_STR_SIZE 256
+static SNSR_DATA_TYPE packet_data_buffer[SNSR_NUM_AXES * SNSR_SAMPLES_PER_PACKET];
+static int num_packets = 0;
+static char json_config_str[SML_MAX_CFG_STR_SIZE];
+
+static void connect_reconnect()
+{
+    uint32_t time = read_timer_ms();
+    char newline[] = "\n";
+
+    UART_Write((uint8_t *) json_config_str, strlen(json_config_str));
+    UART_Write((uint8_t *) newline, 1);
+    while(!ssi_io_s.connected) {
+        if (USART1_IsRxReady())
+        {
+            ssi_try_connect();
+        }
+        if ((read_timer_ms() - time) >= 1000) {
+            time = read_timer_ms();
+            //printf("%s\r\n", json_config_str);
+            UART_Write((uint8_t *) json_config_str, strlen(json_config_str));
+            UART_Write((uint8_t *) newline, 1);
+        }
+    }
+    buffer_reset(&snsr_buffer);
+}
+
+static void build_json_config(void)
+{
+    size_t written=0;
+    size_t snsr_index = 0;
+
+    written += snprintf(json_config_str, SML_MAX_CFG_STR_SIZE, "{\"version\":%d, \"sample_rate\":%d,"
+                        "\"samples_per_packet\":%d,"
+                        "\"column_location\":{"
+                        , SSI_JSON_CONFIG_VERSION, SNSR_SAMPLE_RATE, SNSR_SAMPLES_PER_PACKET);
+    #if SNSR_USE_ACCEL_X
+    written += snprintf(json_config_str+written, SML_MAX_CFG_STR_SIZE-written, "\"AccelerometerX\":%d,", snsr_index++);
+    #endif
+    #if SNSR_USE_ACCEL_Y
+    written += snprintf(json_config_str+written, SML_MAX_CFG_STR_SIZE-written, "\"AccelerometerY\":%d,", snsr_index++);
+    #endif
+    #if SNSR_USE_ACCEL_Z
+    written += snprintf(json_config_str+written, SML_MAX_CFG_STR_SIZE-written, "\"AccelerometerZ\":%d,", snsr_index++);
+    #endif
+    #if SNSR_USE_GYRO_X
+    written += snprintf(json_config_str+written, SML_MAX_CFG_STR_SIZE-written, "\"GyroscopeX\":%d,", snsr_index++);
+    #endif
+    #if SNSR_USE_GYRO_Y
+    written += snprintf(json_config_str+written, SML_MAX_CFG_STR_SIZE-written, "\"GyroscopeY\":%d,", snsr_index++);
+    #endif
+    #if SNSR_USE_GYRO_Z
+    written += snprintf(json_config_str+written, SML_MAX_CFG_STR_SIZE-written, "\"GyroscopeZ\":%d", snsr_index++);
+    #endif
+    if(json_config_str[written-1] == ',')
+    {
+        written--;
+    }
+    snprintf(json_config_str+written, SML_MAX_CFG_STR_SIZE-written, "}}");
+}
+
+#endif //STREAM_FORMAT_IS(SMLSS)
 
 int main ( void )
 {
@@ -192,15 +214,14 @@ int main ( void )
 #endif
 
 #if STREAM_FORMAT_IS(SMLSS)
-        ssi_io_s.ssi_read = SERCOM5_USART_Read;
-        ssi_io_s.ssi_write = SERCOM5_USART_Write;
+        ssi_io_s.ssi_read = UART_Read;
+        ssi_io_s.ssi_write = UART_Write;
         ssi_io_s.connected = false;
         ssi_init(&ssi_io_s);
         build_json_config();
-
         connect_reconnect();
-#endif //STREAM_FORMAT_IS(SMLSS)
         
+#endif //STREAM_FORMAT_IS(SMLSS)
         buffer_reset(&snsr_buffer);
         
         tickrate = TICK_RATE_SLOW;
@@ -240,7 +261,7 @@ int main ( void )
                 USART1_Write(headerbyte);
 
                 for (int bytecnt=0; bytecnt < sizeof(buffer_frame_t); bytecnt++) {
-                    USART1_Write(*((uint8_t *) ptr + bytecnt), sizeof(buffer_frame_t) - bytecnt);
+                    USART1_Write(*((uint8_t *) ptr + bytecnt));
                 }
                 
                 headerbyte = ~headerbyte;
@@ -261,15 +282,15 @@ int main ( void )
                 {
                     if(ssi_io_s.connected)
                     {
-    #if SSI_JSON_CONFIG_VERSION==2
-                    ssiv2_publish_sensor_data(0, (uint8_t*) packet_data_buffer, PACKET_BUFFER_BYTE_LEN);
-    #elif SSI_JSON_CONFIG_VERSION==1
-                    ssiv1_publish_sensor_data((uint8_t*) packet_data_buffer, PACKET_BUFFER_BYTE_LEN);
-    #endif
-                    num_packets = 0;
+#                   if SSI_JSON_CONFIG_VERSION==2
+                        ssiv2_publish_sensor_data(0, (uint8_t*) packet_data_buffer, PACKET_BUFFER_BYTE_LEN);
+#                   elif SSI_JSON_CONFIG_VERSION==1
+                        ssiv1_publish_sensor_data((uint8_t*) packet_data_buffer, PACKET_BUFFER_BYTE_LEN);
+#                   endif //SSI_JSON_CONFIG_VERSION
+                        num_packets = 0;
                     }
                 }                
-#endif
+#endif //STREAM_FORMAT_IS
                 ptr += SNSR_NUM_AXES;
                 buffer_advance_read_index(&snsr_buffer, 1);
             }

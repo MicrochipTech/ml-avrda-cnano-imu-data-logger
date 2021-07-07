@@ -92,20 +92,8 @@ int8_t bmi160_i2c_read (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint1
     return BMI160_OK;
 }
 
-static twi0_operations_t write_complete_handler(void *ptr)
-{
-    I2C0_SetBuffer(((buf_t *)ptr)->data,((buf_t*)ptr)->len);
-    I2C0_SetDataCompleteCallback(I2C0_SetReturnStopCallback, NULL);
-    return I2C0_RESTART_WRITE;
-}
-
 int8_t bmi160_i2c_write (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
-    
     twi0_error_t ret;
-//    buf_t    writebuffer;
-//    
-//    writebuffer.data = data;
-//    writebuffer.len = len;
     uint8_t buff [SNSR_COM_BUF_SIZE];
     
     if (len + 1 > SNSR_COM_BUF_SIZE)

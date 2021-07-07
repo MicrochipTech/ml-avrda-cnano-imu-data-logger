@@ -16,6 +16,8 @@
                 <sourceRootElem>.</sourceRootElem>
                 <sourceRootElem>../bmi160</sourceRootElem>
                 <sourceRootElem>../Icm426xx</sourceRootElem>
+                <sourceRootElem>../../tmp/firmware/sensiml</sourceRootElem>
+                <sourceRootElem>../sensiml</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
