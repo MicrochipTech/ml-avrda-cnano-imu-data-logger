@@ -11,6 +11,7 @@ This repository contains firmware for streaming up to 6-axes IMU data over UART 
 ## Software Used
 * MPLAB® X IDE (https://microchip.com/mplab/mplab-x-ide)
 * MPLAB® XC8 compiler (https://microchip.com/mplab/compilers)
+* MPLAB® Code Configurator (https://www.microchip.com/mcc)
 
 ## Related Documentation
 * AVR128DA48 [Product Family Page](https://www.microchip.com/wwwproducts/en/AVR128DA48)
@@ -36,7 +37,7 @@ To select the data streaming format, set the `DATA_STREAMER_FORMAT` macro in `ap
 | --- | --- |
 | ASCII text | `#define DATA_STREAMER_FORMAT DATA_STREAMER_FORMAT_ASCII` |
 | [MPLAB Data Visualizer](https://www.microchip.com/en-us/development-tools-tools-and-software/embedded-software-center/mplab-data-visualizer) stream | `#define DATA_STREAMER_FORMAT DATA_STREAMER_FORMAT_MDV` |
-
+| [SensiML Simple Stream](https://sensiml.com/documentation/simple-streaming-specification/introduction.html) | `#define DATA_STREAMER_FORMAT DATA_STREAMER_FORMAT_SMLSS` |
 
 ## Sensor Configuration Parameters
 High level sensor parameters like sample rate and axes selection can be configured by modifying the macro values defined in `firmware/src/app_config.h`. See the inline comments for further description.
