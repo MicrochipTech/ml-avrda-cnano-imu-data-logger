@@ -3,6 +3,12 @@
 ## Repository Overview
 This repository contains firmware for streaming up to 6-axes IMU data over UART from the AVR128DA48 Curiosity Nano board with Base board and Mikroe IMU2 Click board, streaming using one of several formats as described in the sections below.
 
+This project is a port of the [SAMD21 ML Eval Kit data logger](https://github.com/MicrochipTech/ml-samd21-iot-imu-data-logger) maintained on github; please see that repository for more detail and instructions. Below are a summary of the functional differences between the 2 projects:
+
+* No support for TDK sensor (ICM42688)
+* Uses MPLAB Code Configurator for code generation instead of Harmony
+* Uses only a single MPLAB X project configuration (samd21 uses one for each sensor)
+
 ## Hardware Used
 * AVR128DA48 Curiosity Nano Evaluation Kit [(DM164151)](https://www.microchip.com/Developmenttools/ProductDetails/DM164151)
 * Curiosity Nano Base for Click boards™ [(AC164162)](https://www.microchip.com/developmenttools/ProductDetails/AC164162)
