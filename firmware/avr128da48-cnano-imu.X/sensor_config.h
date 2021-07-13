@@ -33,7 +33,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "mcc_generated_files/mcc.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -53,17 +52,17 @@
 // high level sensor configuration defined in app_config header
 #include "app_config.h"
 
+#if SNSR_SAMPLE_RATE_UNIT == SNSR_SAMPLE_RATE_UNIT_HZ
+#define SNSR_SAMPLE_RATE_IN_HZ SNSR_SAMPLE_RATE
+#else
+#define SNSR_SAMPLE_RATE_IN_HZ (SNSR_SAMPLE_RATE * 1000)
+#endif
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Internal defines for sensor library
 // *****************************************************************************
 // *****************************************************************************
-
-#define SNSR_COM_BUF_SIZE   1024
-
-// Map CS to MikroBus 1
-#define MIKRO_CS_Clear     MIKRO1_CS_SetLow
-#define MIKRO_CS_Set       MIKRO1_CS_SetHigh
 
 // Provide sensor specific functions
 #if SNSR_TYPE_BMI160

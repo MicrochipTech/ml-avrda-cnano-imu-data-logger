@@ -55,6 +55,7 @@
       <itemPath>app_config.h</itemPath>
       <itemPath>sensor_config.h</itemPath>
       <itemPath>sensor.h</itemPath>
+      <itemPath>ringbuffer.h</itemPath>
     </logicalFolder>
     <logicalFolder displayName="Linker Files" name="LinkerScript" projectFiles="true">
     </logicalFolder>
@@ -96,6 +97,7 @@
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>buffer.c</itemPath>
+      <itemPath>ringbuffer.c</itemPath>
     </logicalFolder>
     <logicalFolder displayName="Important Files" name="ExternalFiles" projectFiles="false">
       <itemPath>Makefile</itemPath>
@@ -106,7 +108,6 @@
     <Elem>.</Elem>
     <Elem>../bmi160</Elem>
     <Elem>../Icm426xx</Elem>
-    <Elem>../../tmp/firmware/sensiml</Elem>
     <Elem>../sensiml</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
@@ -414,7 +415,6 @@
         <property key="memories.programmemory.ranges" value="0-ffff"/>
         <property key="memories.rww" value="true"/>
         <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmerToGoFilePath" value="C:/Users/toemo/dev/repos/tjgarcia-mchp/ml-avr128da48-cnano-imu-data-logger/firmware/avr128da48-cnano-imu.X/debug/AVR128DA48_CNANO_BMI160/avr128da48-cnano-imu_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges" value="${memories.dataflash.default}"/>

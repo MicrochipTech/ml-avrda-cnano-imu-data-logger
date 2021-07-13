@@ -73,7 +73,7 @@
 // For ICM42688 >= 1kHz range:
 //  - set SNSR_SAMPLE_RATE_UNIT to SNSR_SAMPLE_RATE_UNIT_KHZ
 //  - set SNSR_SAMPLE_RATE to one of: 1, 2, 4, 8, 16
-// !NB! Increasing the sample rate above 200Hz with all 6 axes may cause buffer overruns
+// !NB! Increasing the sample rate above 500Hz with all 6 axes may cause buffer overruns
 //      - Change at your own risk!
 #define SNSR_SAMPLE_RATE        100
 #define SNSR_SAMPLE_RATE_UNIT   SNSR_SAMPLE_RATE_UNIT_HZ // HZ or KHZ
@@ -95,21 +95,24 @@
 #define SNSR_USE_GYRO_Y         true
 #define SNSR_USE_GYRO_Z         true
 
-// Size of sensor buffer in samples
+// Size of sensor buffer in samples (must be power of 2)
 #define SNSR_BUF_LEN            64
 
 // Type used to store and stream sensor samples
 #define SNSR_DATA_TYPE          int16_t
 
 // Frame header byte for MPLAB DV
-#define MDV_START_OF_FRAME     0xA5U
+#define MDV_START_OF_FRAME      0xA5U
 
 // SensiML specific parameters
 #if (DATA_STREAMER_FORMAT == DATA_STREAMER_FORMAT_SMLSS)
-#define SNSR_SAMPLES_PER_PACKET 6
+#define SML_MAX_CONFIG_STRLEN   256
+#define SNSR_SAMPLES_PER_PACKET 8 // must be factor of SNSR_BUF_LEN
+#else
+#define SNSR_SAMPLES_PER_PACKET 1
 #endif
 
-// LED tick rate parameters
+// LED tick rate periods in ms
 #define TICK_RATE_FAST          100
 #define TICK_RATE_SLOW          500
 
@@ -130,37 +133,49 @@
     #define MULTI_SENSOR 0
 #endif
 
+// The way the buffering works the following condition must be enforced
+#if (SNSR_BUF_LEN % SNSR_SAMPLES_PER_PACKET) > 0
+#error "SNSR_SAMPLES_PER_PACKET must be a factor of SNSR_BUF_LEN"
+#endif
+
 // Provide the functions needed by sensor module
 #define snsr_read_timer_us read_timer_us
 #define snsr_read_timer_ms read_timer_ms
 #define snsr_sleep_ms      sleep_ms
 #define snsr_sleep_us      sleep_us
 
-// Some convenience macros
-#define __nop__()       do {} while (0)
-#define LED_BLUE_On     LED0_SetLow
-#define LED_BLUE_Off    LED0_SetHigh
-#define LED_GREEN_On    LED0_SetLow
-#define LED_GREEN_Off   LED0_SetHigh
-#define LED_GREEN_Toggle    LED0_Toggle
-#define LED_RED_On      LED0_SetLow
-#define LED_RED_Off     LED0_SetHigh
-#define LED_YELLOW_On   LED0_SetLow
-#define LED_YELLOW_Off  LED0_SetHigh
-#define LED_ALL_On()    do { LED_YELLOW_On(); LED_GREEN_On(); LED_RED_On(); LED_BLUE_On(); } while (0)
-#define LED_ALL_Off()   do { LED_YELLOW_Off(); LED_GREEN_Off(); LED_RED_Off(); LED_BLUE_Off(); } while (0)
-
 #define STREAM_FORMAT_IS(X) (defined(DATA_STREAMER_FORMAT_ ## X) && (DATA_STREAMER_FORMAT_ ## X == DATA_STREAMER_FORMAT))
 
-#define SNSR_SAMPLE_RATE_UNIT_STR ((SNSR_SAMPLE_RATE_UNIT == SNSR_SAMPLE_RATE_UNIT_KHZ) ? "kHz" : "Hz")
 #ifdef SNSR_TYPE_BMI160
 #define SNSR_NAME "bmi160"
 #elif SNSR_TYPE_ICM42688
 #define SNSR_NAME "icm42688"
 #endif
 
+// Some convenience macros
+#define __nop__()           do {} while (0)
+#define LED_BLUE_On         __nop__
+#define LED_BLUE_Off        __nop__
+#define LED_GREEN_On        __nop__
+#define LED_GREEN_Off       __nop__
+#define LED_GREEN_Toggle    __nop__
+#define LED_RED_On          __nop__
+#define LED_RED_Off         __nop__
+#define LED_YELLOW_On       LED0_SetLow
+#define LED_YELLOW_Off      LED0_SetHigh
+#define LED_YELLOW_Toggle   LED0_Toggle
+#define LED_ALL_On()        do { LED_YELLOW_On(); LED_GREEN_On(); LED_RED_On(); LED_BLUE_On(); } while (0)
+#define LED_ALL_Off()       do { LED_YELLOW_Off(); LED_GREEN_Off(); LED_RED_Off(); LED_BLUE_Off(); } while (0)
+#define LED_STATUS_On       LED_YELLOW_On
+#define LED_STATUS_Off      LED_YELLOW_Off
+#define LED_STATUS_Toggle   LED_YELLOW_Toggle
+
 // Macros for portability
-#define TC_TIMER_STATUS void
+// Map CS to MikroBus 1
+#define MIKRO_CS_Clear     MIKRO1_CS_SetLow
+#define MIKRO_CS_Set       MIKRO1_CS_SetHigh
+#define UART_IsRxReady  USART1_IsRxReady
+#define UART_RXC_Enable() do { USART1.CTRLA |= USART_RXCIE_bm; } while (0)
 #define SYS_Initialize(x)  SYSTEM_Initialize()
 #define TC_TimerStart   __nop__
 #define SYS_Tasks       __nop__
