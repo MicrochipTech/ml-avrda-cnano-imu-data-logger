@@ -152,15 +152,18 @@
 #define SNSR_NAME "icm42688"
 #endif
 
-// Some convenience macros
-#define __nop__()           do {} while (0)
-#define LED_BLUE_On         __nop__
-#define LED_BLUE_Off        __nop__
-#define LED_GREEN_On        __nop__
-#define LED_GREEN_Off       __nop__
-#define LED_GREEN_Toggle    __nop__
-#define LED_RED_On          __nop__
-#define LED_RED_Off         __nop__
+// *****************************************************************************
+// *****************************************************************************
+// Section: Platform generic macros for portability
+// *****************************************************************************
+// *****************************************************************************
+#define __nullop__()        do {} while (0)
+#define LED_BLUE_On         __nullop__
+#define LED_BLUE_Off        __nullop__
+#define LED_GREEN_On        __nullop__
+#define LED_GREEN_Off       __nullop__
+#define LED_RED_On          __nullop__
+#define LED_RED_Off         __nullop__
 #define LED_YELLOW_On       LED0_SetLow
 #define LED_YELLOW_Off      LED0_SetHigh
 #define LED_YELLOW_Toggle   LED0_Toggle
@@ -170,18 +173,26 @@
 #define LED_STATUS_Off      LED_YELLOW_Off
 #define LED_STATUS_Toggle   LED_YELLOW_Toggle
 
-// Macros for portability
 // Map CS to MikroBus 1
-#define MIKRO_CS_Clear     MIKRO1_CS_SetLow
-#define MIKRO_CS_Set       MIKRO1_CS_SetHigh
-#define UART_IsRxReady  USART1_IsRxReady
+#define MIKRO_CS_Clear      MIKRO1_CS_SetLow
+#define MIKRO_CS_Set        MIKRO1_CS_SetHigh
+
+// UART stubs
+#define UART_RX_DATA        USART1.RXDATAL
+#define UART_IsRxReady      USART1_IsRxReady
 #define UART_RXC_Enable() do { USART1.CTRLA |= USART_RXCIE_bm; } while (0)
-#define SYS_Initialize(x)  SYSTEM_Initialize()
-#define TC_TimerStart   __nop__
-#define SYS_Tasks       __nop__
-#define MIKRO_INT_CallbackRegister PORTD_MIKRO1_INT_SetInterruptHandler
-#define TC_TimerGet TCA0_ReadTimer
-#define TC_TimerCallbackRegister TCA0_SetOVFIsrCallback
+
+// Device init / management
+#define SYS_Initialize(x)   SYSTEM_Initialize()
+#define SYS_Tasks           __nullop__
+
+// Sensor external interrupt
+#define MIKRO_INT_CallbackRegister  PORTD_MIKRO1_INT_SetInterruptHandler
+
+// uS Timer
+#define TC_TimerStart               __nullop__
+#define TC_TimerGet_us              TCA0_ReadTimer
+#define TC_TimerCallbackRegister    TCA0_SetOVFIsrCallback
 
 #ifdef	__cplusplus
 extern "C" {

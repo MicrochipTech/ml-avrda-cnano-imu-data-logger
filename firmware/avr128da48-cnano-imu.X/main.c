@@ -24,8 +24,9 @@
 
 #include <stddef.h>                     // Defines NULL
 #include <stdbool.h>                    // Defines true
+#include <stdint.h>
 #include <stdlib.h>                     // Defines EXIT_FAILURE
-#include "mcc_generated_files/mcc.h"                // SYS function prototypes
+#include <stdio.h>
 #include "buffer.h"
 #include "ringbuffer.h"
 #include "sensor.h"
@@ -33,17 +34,18 @@
 #if STREAM_FORMAT_IS(SMLSS)
 #include "ssi_comms.h"
 #endif //STREAM_FORMAT_IS(SMLSS)
+// *****************************************************************************
+// *****************************************************************************
+// Section: Platform specific includes
+// *****************************************************************************
+// *****************************************************************************
+#include "mcc_generated_files/mcc.h"
 
 // *****************************************************************************
 // *****************************************************************************
 // Section: Global variables
 // *****************************************************************************
 // *****************************************************************************
-
-#if STREAM_FORMAT_IS(SMLSS)
-static ssi_io_funcs_t ssi_io_s;
-static char json_config_str[SML_MAX_CONFIG_STRLEN];
-#endif //STREAM_FORMAT_IS(SMLSS)
 
 /* Must be large enough to hold the connect/disconnect strings from SensiML DCL */
 static uint8_t _uartRxBuffer_data[128];
@@ -57,14 +59,13 @@ static struct sensor_buffer_t snsr_buffer;
 
 // *****************************************************************************
 // *****************************************************************************
-// Section: Stub definitions
+// Section: Platform specific stub definitions
 // *****************************************************************************
 // *****************************************************************************
-
-ISR(USART1_RXC_vect) {    
+ISR(USART1_RXC_vect) {
     uint8_t *ptr;
-    if (ringbuffer_get_write_buffer(&uartRxBuffer, &ptr)) {
-        *ptr = USART1.RXDATAL;
+    if (UART_IsRxReady() && ringbuffer_get_write_buffer(&uartRxBuffer, &ptr)) {
+        *ptr = UART_RX_DATA;
         ringbuffer_advance_write_index(&uartRxBuffer, 1);
     }
 }
@@ -76,6 +77,12 @@ static size_t __attribute__(( unused )) UART_Write(uint8_t *ptr, const size_t nb
     }
     return bytecnt;
 }
+
+// *****************************************************************************
+// *****************************************************************************
+// Section: Generic stub definitions
+// *****************************************************************************
+// *****************************************************************************
 
 static size_t __attribute__(( unused )) UART_Read(uint8_t *ptr, const size_t nbytes) {
     return ringbuffer_read(&uartRxBuffer, ptr, nbytes);
@@ -99,7 +106,7 @@ uint64_t read_timer_ms(void) {
 }
 
 uint64_t read_timer_us(void) {
-    return tickcounter * 1000U + (uint32_t) TC_TimerGet();
+    return tickcounter * 1000U + (uint32_t) TC_TimerGet_us();
 }
 
 void sleep_ms(uint32_t ms) {
@@ -113,50 +120,61 @@ void sleep_us(uint32_t us) {
 }
 
 // For handling read of the sensor data
-void SNSR_ISR_HANDLER() {
+void SNSR_ISR_HANDLER() {    
     /* Check if any errors we've flagged have been acknowledged */
     if (sensor.status != SNSR_STATUS_OK) {
         return;
     }
     
-    sensor.status = sensor_read(&sensor, &snsr_buffer);
+    buffer_data_t *ptr;
+    if (buffer_get_write_buffer(&snsr_buffer, &ptr) \
+            && (sensor.status = sensor_read(&sensor, ptr)) == SNSR_STATUS_OK) {
+        buffer_advance_write_index(&snsr_buffer, 1);
+    }
+    else {
+        snsr_buffer.overrun = true;
+    }
 }
 
 #if STREAM_FORMAT_IS(SMLSS)
-static void ssi_build_json_config(void)
+static char json_config_str[SML_MAX_CONFIG_STRLEN];
+
+size_t ssi_build_json_config(char json_config_str[], size_t maxlen)
 {
     size_t written=0;
     size_t snsr_index = 0;
 
-    written += snprintf(json_config_str, SML_MAX_CONFIG_STRLEN, 
+    written += snprintf(json_config_str, maxlen, 
             "{\"version\":%d"
             ",\"sample_rate\":%d"
             ",\"samples_per_packet\":%d"
             ",\"column_location\":{"
             , SSI_JSON_CONFIG_VERSION, SNSR_SAMPLE_RATE_IN_HZ, SNSR_SAMPLES_PER_PACKET);
 #if SNSR_USE_ACCEL_X
-    written += snprintf(json_config_str+written, SML_MAX_CONFIG_STRLEN-written, "\"AccelerometerX\":%d,", snsr_index++);
+    written += snprintf(json_config_str+written, maxlen-written, "\"AccelerometerX\":%d,", snsr_index++);
 #endif
 #if SNSR_USE_ACCEL_Y
-    written += snprintf(json_config_str+written, SML_MAX_CONFIG_STRLEN-written, "\"AccelerometerY\":%d,", snsr_index++);
+    written += snprintf(json_config_str+written, maxlen-written, "\"AccelerometerY\":%d,", snsr_index++);
 #endif
 #if SNSR_USE_ACCEL_Z
-    written += snprintf(json_config_str+written, SML_MAX_CONFIG_STRLEN-written, "\"AccelerometerZ\":%d,", snsr_index++);
+    written += snprintf(json_config_str+written, maxlen-written, "\"AccelerometerZ\":%d,", snsr_index++);
 #endif
 #if SNSR_USE_GYRO_X
-    written += snprintf(json_config_str+written, SML_MAX_CONFIG_STRLEN-written, "\"GyroscopeX\":%d,", snsr_index++);
+    written += snprintf(json_config_str+written, maxlen-written, "\"GyroscopeX\":%d,", snsr_index++);
 #endif
 #if SNSR_USE_GYRO_Y
-    written += snprintf(json_config_str+written, SML_MAX_CONFIG_STRLEN-written, "\"GyroscopeY\":%d,", snsr_index++);
+    written += snprintf(json_config_str+written, maxlen-written, "\"GyroscopeY\":%d,", snsr_index++);
 #endif
 #if SNSR_USE_GYRO_Z
-    written += snprintf(json_config_str+written, SML_MAX_CONFIG_STRLEN-written, "\"GyroscopeZ\":%d", snsr_index++);
+    written += snprintf(json_config_str+written, maxlen-written, "\"GyroscopeZ\":%d", snsr_index++);
 #endif
     if(json_config_str[written-1] == ',')
     {
         written--;
     }
-    snprintf(json_config_str+written, SML_MAX_CONFIG_STRLEN-written, "}}\n");
+    snprintf(json_config_str+written, maxlen-written, "}}\n");
+    
+    return written;
 }
 
 #endif //STREAM_FORMAT_IS(SMLSS)
@@ -169,6 +187,12 @@ static void ssi_build_json_config(void)
 
 int main ( void )
 {
+    int8_t app_failed;
+#if STREAM_FORMAT_IS(SMLSS)
+    uint32_t ssi_adtimer = 0;
+    ssi_io_funcs_t ssi_io_s;
+#endif
+    
     /* Initialize all modules */
     SYS_Initialize ( NULL );
     
@@ -179,42 +203,29 @@ int main ( void )
     /* Activate External Interrupt Controller for sensor capture */
     MIKRO_INT_CallbackRegister(SNSR_ISR_HANDLER);
     
-    /* Initialize our data buffer */
-    buffer_init(&snsr_buffer);
-    
-    /* Initialize the UART RX buffer */
-    if (!ringbuffer_init(&uartRxBuffer, _uartRxBuffer_data, sizeof(_uartRxBuffer_data))) {
-        return 0;
-    }
-    
-    /* Enable UART RXC interrupt */
-    UART_RXC_Enable();
-
-    /* Init SensiML simple-stream interface */
-#if STREAM_FORMAT_IS(SMLSS)
-    ssi_io_s.ssi_read = UART_Read;
-    ssi_io_s.ssi_write = UART_Write;
-    ssi_io_s.connected = false;
-    ssi_init(&ssi_io_s);
-    ssi_build_json_config();
-    
-    /* STATE CHANGE - Application now waiting for connect */
-    
-    /* Sensor config advertisement timer*/
-    uint32_t adtimer = 0;
-#endif
-    
     printf("\n");
     
+    /* Application init routine */
+    app_failed = 1;
     while (1)
-    {    
+    {
+        /* Initialize our data buffer */
+        buffer_init(&snsr_buffer);
+
+        /* Initialize the UART RX buffer */
+        if (!ringbuffer_init(&uartRxBuffer, _uartRxBuffer_data, sizeof(_uartRxBuffer_data)))
+            break;
+        
+        /* Enable UART RXC interrupt */
+        UART_RXC_Enable();
+
         if (sensor_init(&sensor) != SNSR_STATUS_OK) {
-            printf("sensor init result = %d\n", sensor.status);
+            printf("ERROR: sensor init result = %d\n", sensor.status);
             break;
         }
         
         if (sensor_set_config(&sensor) != SNSR_STATUS_OK) {
-            printf("sensor configuration result = %d\n", sensor.status);
+            printf("ERROR: sensor configuration result = %d\n", sensor.status);
             break;
         }
         
@@ -230,27 +241,38 @@ int main ( void )
 #else
         printf("gyrometer disabled\n");
 #endif
-        /* STATE CHANGE - Application successfully initialized */
-        tickrate = 0;
-        LED_STATUS_On();
+        
+#if STREAM_FORMAT_IS(SMLSS)
+        /* Init SensiML simple-stream interface */
+        ssi_io_s.ssi_read = UART_Read;
+        ssi_io_s.ssi_write = UART_Write;
+        ssi_io_s.connected = false;
+        ssi_init(&ssi_io_s);
+        ssi_build_json_config(json_config_str, SML_MAX_CONFIG_STRLEN);
+#endif
 
-#if !STREAM_FORMAT_IS(NONE) && !STREAM_FORMAT_IS(SMLSS)
+        /* STATE CHANGE - Application successfully initialized */
+        tickrate = 0; LED_STATUS_On();
+        
+#if STREAM_FORMAT_IS(SMLSS)
+        /* STATE CHANGE - Application now waiting for connect */
+#elif !STREAM_FORMAT_IS(NONE)
         /* STATE CHANGE - Application is streaming */
         tickrate = TICK_RATE_SLOW;
-#endif //STREAM_FORMAT_IS(SMLSS)
+#endif //STREAM_FORMAT_IS(SMLSS)        
         
         buffer_reset(&snsr_buffer);
-        
+        app_failed = 0;
         break;
     }
     
-    while (1)
+    while (!app_failed)
     {
-        /* Maintain state machines of all polled MPLAB Harmony modules. */
+        /* Maintain state machines of all system modules. */
         SYS_Tasks ( );
         
         if (sensor.status != SNSR_STATUS_OK) {
-            printf("Got a bad sensor status: %d\n", sensor.status);
+            printf("ERROR: Got a bad sensor status: %d\n", sensor.status);
             break;
         }
 #if STREAM_FORMAT_IS(SMLSS)
@@ -265,8 +287,8 @@ int main ( void )
                 /* Reset the sensor buffer */
                 buffer_reset(&snsr_buffer);
             }
-            if (read_timer_ms() - adtimer > 500) {
-                adtimer = read_timer_ms();
+            if (read_timer_ms() - ssi_adtimer > 500) {
+                ssi_adtimer = read_timer_ms();
                 UART_Write((uint8_t *) json_config_str, strlen(json_config_str));
             }
         }

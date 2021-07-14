@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Sensor Driver Interface Source File
+  BMI160 Sensor Driver Interface Source File
 
   Company:
     Microchip Technology Inc.
@@ -8,7 +8,7 @@
     bmi160_sensor.c
 
   Summary:
-    This file defines a simplified interface API for configuring the IMU sensor
+    This file implements the simplified sensor API for configuring the BMI160 IMU sensor
 
   Description:
     None
@@ -41,8 +41,18 @@
 #include <string.h>
 #include "sensor.h"
 #include "bmi160.h"
+// *****************************************************************************
+// *****************************************************************************
+// Section: Platform specific includes
+// *****************************************************************************
+// *****************************************************************************
 #include "mcc_generated_files/mcc.h"
 
+// *****************************************************************************
+// *****************************************************************************
+// Section: Macros for setting sample rate and sensor range
+// *****************************************************************************
+// *****************************************************************************
 // Macro function to get the proper Macro defines corresponding to SNSR_SAMPLE_RATE
 #if (SNSR_SAMPLE_RATE_UNIT == SNSR_SAMPLE_RATE_UNIT_KHZ)
     #error "BMI160 driver doesn't support sample rate units in kHZ; use SNSR_SAMPLE_RATE_UNIT_HZ instead"
@@ -59,6 +69,11 @@
 #define _SNSRGYRORANGEEXPR(x) __SNSRGYRORANGEMACRO(x)
 #define _GET_IMU_GYRO_RANGE_MACRO() _SNSRGYRORANGEEXPR(SNSR_GYRO_RANGE)
 
+// *****************************************************************************
+// *****************************************************************************
+// Section: Serial comms implementation
+// *****************************************************************************
+// *****************************************************************************
 typedef struct
 {
     size_t len;
@@ -72,7 +87,7 @@ static twi0_operations_t read_complete_handler(void *ptr)
     return I2C0_RESTART_READ;
 }
 
-int8_t bmi160_i2c_read (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
+static int8_t bmi160_i2c_read (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
     twi0_error_t ret;
     buf_t    readbuffer;
     
@@ -93,9 +108,9 @@ int8_t bmi160_i2c_read (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint1
     return BMI160_OK;
 }
 
-int8_t bmi160_i2c_write (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
+static int8_t bmi160_i2c_write (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
     twi0_error_t ret;
-    uint8_t buff [SNSR_COM_BUF_SIZE];
+    static uint8_t buff [SNSR_COM_BUF_SIZE];
     
     if (len + 1 > SNSR_COM_BUF_SIZE)
         return BMI160_E_COM_FAIL;
@@ -106,10 +121,8 @@ int8_t bmi160_i2c_write (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint
     }
     
     while((ret = I2C0_Open(dev_addr)) == I2C0_BUSY); // sit here until we get the bus..
-//    I2C0_SetDataCompleteCallback(write_complete_handler, &writebuffer);
     I2C0_SetAddressNackCallback(I2C0_SetRestartWriteCallback, NULL); //NACK polling?
     I2C0_SetBuffer(buff, len+1);
-//    I2C0_SetBuffer(&reg_addr, 1);
     I2C0_MasterOperation(0);
     while((ret = I2C0_Close()) == I2C0_BUSY); // sit here until finished.
     
@@ -120,7 +133,12 @@ int8_t bmi160_i2c_write (uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint
     return BMI160_OK;
 }
 
-int bmi160_sensor_read(struct sensor_device_t *sensor, struct sensor_buffer_t *buffer)
+// *****************************************************************************
+// *****************************************************************************
+// Section: Platform generic sensor implementation functions
+// *****************************************************************************
+// *****************************************************************************
+int bmi160_sensor_read(struct sensor_device_t *sensor, buffer_data_t *ptr)
 {
     /* Read bmi160 sensor data */
     struct bmi160_sensor_data accel;
@@ -132,8 +150,6 @@ int bmi160_sensor_read(struct sensor_device_t *sensor, struct sensor_buffer_t *b
         return status;
     
     /* Convert sensor data to buffer type and write to buffer */
-    buffer_frame_t frame;
-    buffer_data_t *ptr = frame;
 #if SNSR_USE_ACCEL_X
     *ptr++ = (buffer_data_t) accel.x;
 #endif
@@ -152,7 +168,6 @@ int bmi160_sensor_read(struct sensor_device_t *sensor, struct sensor_buffer_t *b
 #if SNSR_USE_GYRO_Z
     *ptr++ = (buffer_data_t) gyro.z;
 #endif
-    buffer_write(buffer, &frame, 1);
     
     return status;
 }
