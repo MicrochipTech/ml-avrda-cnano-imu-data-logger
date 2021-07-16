@@ -86,8 +86,8 @@ int8_t CLKCTRL_Initialize()
     //RUNSTDBY disabled; CSUT 1K; SEL disabled; LPMODE disabled; ENABLE disabled; 
     ccp_write_io((void*)&(CLKCTRL.XOSC32KCTRLA),0x00);
 
-    //PDIV 2X; PEN disabled; 
-    ccp_write_io((void*)&(CLKCTRL.MCLKCTRLB),0x00);
+    //PDIV 4X; PEN disabled; 
+    ccp_write_io((void*)&(CLKCTRL.MCLKCTRLB),0x02);
 
     //CLKOUT disabled; CLKSEL OSCHF; 
     ccp_write_io((void*)&(CLKCTRL.MCLKCTRLA),0x00);

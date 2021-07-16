@@ -180,24 +180,6 @@
 #define PC0_DisableDigitalInputBuffer() do { PORTC.PIN0CTRL = (PORTC.PIN0CTRL & ~PORT_ISC_gm) | 0x4 ; } while(0)
 #define PC0_EnableInterruptForLowLevelSensing() do { PORTC.PIN0CTRL = (PORTC.PIN0CTRL & ~PORT_ISC_gm) | 0x5 ; } while(0)
 
-//get/set PC2 aliases
-#define PC2_SetHigh() do { PORTC_OUTSET = 0x4; } while(0)
-#define PC2_SetLow() do { PORTC_OUTCLR = 0x4; } while(0)
-#define PC2_Toggle() do { PORTC_OUTTGL = 0x4; } while(0)
-#define PC2_GetValue() (VPORTC.IN & (0x1 << 2))
-#define PC2_SetDigitalInput() do { PORTC_DIRCLR = 0x4; } while(0)
-#define PC2_SetDigitalOutput() do { PORTC_DIRSET = 0x4; } while(0)
-#define PC2_SetPullUp() do { PORTC_PIN2CTRL  |= PORT_PULLUPEN_bm; } while(0)
-#define PC2_ResetPullUp() do { PORTC_PIN2CTRL  &= ~PORT_PULLUPEN_bm; } while(0)
-#define PC2_SetInverted() do { PORTC_PIN2CTRL  |= PORT_INVEN_bm; } while(0)
-#define PC2_ResetInverted() do { PORTC_PIN2CTRL  &= ~PORT_INVEN_bm; } while(0)
-#define PC2_DisableInterruptOnChange() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x0 ; } while(0)
-#define PC2_EnableInterruptForBothEdges() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x1 ; } while(0)
-#define PC2_EnableInterruptForRisingEdge() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x2 ; } while(0)
-#define PC2_EnableInterruptForFallingEdge() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x3 ; } while(0)
-#define PC2_DisableDigitalInputBuffer() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x4 ; } while(0)
-#define PC2_EnableInterruptForLowLevelSensing() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x5 ; } while(0)
-
 //get/set PA0 aliases
 #define PA0_SetHigh() do { PORTA_OUTSET = 0x1; } while(0)
 #define PA0_SetLow() do { PORTA_OUTCLR = 0x1; } while(0)
@@ -215,6 +197,24 @@
 #define PA0_EnableInterruptForFallingEdge() do { PORTA.PIN0CTRL = (PORTA.PIN0CTRL & ~PORT_ISC_gm) | 0x3 ; } while(0)
 #define PA0_DisableDigitalInputBuffer() do { PORTA.PIN0CTRL = (PORTA.PIN0CTRL & ~PORT_ISC_gm) | 0x4 ; } while(0)
 #define PA0_EnableInterruptForLowLevelSensing() do { PORTA.PIN0CTRL = (PORTA.PIN0CTRL & ~PORT_ISC_gm) | 0x5 ; } while(0)
+
+//get/set PC2 aliases
+#define PC2_SetHigh() do { PORTC_OUTSET = 0x4; } while(0)
+#define PC2_SetLow() do { PORTC_OUTCLR = 0x4; } while(0)
+#define PC2_Toggle() do { PORTC_OUTTGL = 0x4; } while(0)
+#define PC2_GetValue() (VPORTC.IN & (0x1 << 2))
+#define PC2_SetDigitalInput() do { PORTC_DIRCLR = 0x4; } while(0)
+#define PC2_SetDigitalOutput() do { PORTC_DIRSET = 0x4; } while(0)
+#define PC2_SetPullUp() do { PORTC_PIN2CTRL  |= PORT_PULLUPEN_bm; } while(0)
+#define PC2_ResetPullUp() do { PORTC_PIN2CTRL  &= ~PORT_PULLUPEN_bm; } while(0)
+#define PC2_SetInverted() do { PORTC_PIN2CTRL  |= PORT_INVEN_bm; } while(0)
+#define PC2_ResetInverted() do { PORTC_PIN2CTRL  &= ~PORT_INVEN_bm; } while(0)
+#define PC2_DisableInterruptOnChange() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x0 ; } while(0)
+#define PC2_EnableInterruptForBothEdges() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x1 ; } while(0)
+#define PC2_EnableInterruptForRisingEdge() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x2 ; } while(0)
+#define PC2_EnableInterruptForFallingEdge() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x3 ; } while(0)
+#define PC2_DisableDigitalInputBuffer() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x4 ; } while(0)
+#define PC2_EnableInterruptForLowLevelSensing() do { PORTC.PIN2CTRL = (PORTC.PIN2CTRL & ~PORT_ISC_gm) | 0x5 ; } while(0)
 
 //get/set PC1 aliases
 #define PC1_SetHigh() do { PORTC_OUTSET = 0x2; } while(0)
@@ -251,10 +251,10 @@ void PORTA_MIKRO1_CS_DefaultInterruptHandler(void);
 void PORTA_MIKRO1_CS_SetInterruptHandler(void (* interruptHandler)(void)) ;
 void PORTC_PC0_DefaultInterruptHandler(void);
 void PORTC_PC0_SetInterruptHandler(void (* interruptHandler)(void)) ;
-void PORTC_PC2_DefaultInterruptHandler(void);
-void PORTC_PC2_SetInterruptHandler(void (* interruptHandler)(void)) ;
 void PORTA_PA0_DefaultInterruptHandler(void);
 void PORTA_PA0_SetInterruptHandler(void (* interruptHandler)(void)) ;
+void PORTC_PC2_DefaultInterruptHandler(void);
+void PORTC_PC2_SetInterruptHandler(void (* interruptHandler)(void)) ;
 void PORTC_PC1_DefaultInterruptHandler(void);
 void PORTC_PC1_SetInterruptHandler(void (* interruptHandler)(void)) ;
 #endif /* PINS_H_INCLUDED */
