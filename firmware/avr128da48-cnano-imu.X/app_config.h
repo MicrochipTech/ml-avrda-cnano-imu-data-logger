@@ -73,8 +73,9 @@
 // For ICM42688 >= 1kHz range:
 //  - set SNSR_SAMPLE_RATE_UNIT to SNSR_SAMPLE_RATE_UNIT_KHZ
 //  - set SNSR_SAMPLE_RATE to one of: 1, 2, 4, 8, 16
-// !NB! Increasing the sample rate above 500Hz with all 6 axes may cause buffer overruns
-//      - Change at your own risk!
+// !NB! Increasing the sample rate above 500Hz (this may be lower for non MDV formats)
+// with all 6 axes may cause buffer overruns
+//  - Change at your own risk!
 #define SNSR_SAMPLE_RATE        100
 #define SNSR_SAMPLE_RATE_UNIT   SNSR_SAMPLE_RATE_UNIT_HZ // HZ or KHZ
 
@@ -162,10 +163,13 @@
 #define __nullop__()        do {} while (0)
 #define LED_BLUE_On         __nullop__
 #define LED_BLUE_Off        __nullop__
+#define LED_BLUE_Toggle     __nullop__
 #define LED_GREEN_On        __nullop__
 #define LED_GREEN_Off       __nullop__
+#define LED_GREEN_Toggle    __nullop__
 #define LED_RED_On          __nullop__
 #define LED_RED_Off         __nullop__
+#define LED_RED_Toggle      __nullop__
 #define LED_YELLOW_On       LED0_SetLow
 #define LED_YELLOW_Off      LED0_SetHigh
 #define LED_YELLOW_Toggle   LED0_Toggle
@@ -182,7 +186,7 @@
 // UART stubs
 #define UART_RX_DATA        USART1.RXDATAL
 #define UART_IsRxReady      USART1_IsRxReady
-#define UART_RXC_Enable() do { USART1.CTRLA |= USART_RXCIE_bm; } while (0)
+#define UART_RXC_Enable()   { USART1.CTRLA |= USART_RXCIE_bm; }
 
 // Device init / management
 #define SYS_Initialize(x)   SYSTEM_Initialize()

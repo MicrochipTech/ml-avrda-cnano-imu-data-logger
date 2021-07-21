@@ -1,18 +1,17 @@
 ![https://www.microchip.com/](assets/microchip.png)
 # AVR128DA48 Curiosity Nano Data Logger
 ## Repository Overview
-This repository contains firmware for streaming up to 6-axes IMU data over UART from the AVR128DA48 Curiosity Nano board with Base board and Mikroe IMU2 Click board, streaming using one of several formats as described in the sections below.
+This repository contains firmware for streaming up to 6-axes IMU data over UART from the AVR128DA48 Curiosity Nano board with Base board and Mikroe IMU2 or IMU14 Click boards, streaming using one of several formats as described in the sections below.
 
 This project is a port of the [SAMD21 ML Eval Kit data logger](https://github.com/MicrochipTech/ml-samd21-iot-imu-data-logger) maintained on github; please see that repository for more detail and instructions. Below are a summary of the functional differences between the 2 projects:
 
-* No support for TDK sensor (ICM42688)
 * Uses MPLAB Code Configurator for code generation instead of Harmony
-* Uses only a single MPLAB X project configuration (samd21 uses one for each sensor)
 
 ## Hardware Used
 * AVR128DA48 Curiosity Nano Evaluation Kit [(DM164151)](https://www.microchip.com/Developmenttools/ProductDetails/DM164151)
 * Curiosity Nano Base for Click boards™ [(AC164162)](https://www.microchip.com/developmenttools/ProductDetails/AC164162)
 * IMU 2 click board (https://www.mikroe.com/6dof-imu-2-click)
+* IMU 14 click board (https://www.mikroe.com/6dof-imu-14-click)
 
 ## Software Used
 * MPLAB® X IDE (https://microchip.com/mplab/mplab-x-ide)
@@ -34,7 +33,10 @@ The data streamer firmware will output sensor data over the UART port with the f
 # Firmware Configuration
 
 ## Sensor Selection
-No support for other sensors currently.
+| Sensor Type | MPLAB X Project Configuration Selection |
+| --- | --- |
+| Bosch BMI160 IMU | `AVR128DA48_CNANO_BMI160` |
+| TDK ICM42688 IMU | `AVR128DA48_CNANO_ICM42688` |
 
 ## Streaming Format Selection
 To select the data streaming format, set the `DATA_STREAMER_FORMAT` macro in `app_config.h` to the appropriate value as explained in the table below.

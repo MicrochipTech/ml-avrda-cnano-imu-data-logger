@@ -33,6 +33,7 @@
           <itemPath>mcc_generated_files/include/protected_io.h</itemPath>
           <itemPath>mcc_generated_files/include/tca0.h</itemPath>
           <itemPath>mcc_generated_files/include/twi0_master.h</itemPath>
+          <itemPath>mcc_generated_files/include/spi0.h</itemPath>
         </logicalFolder>
         <logicalFolder displayName="utils" name="utils" projectFiles="true">
           <logicalFolder displayName="assembler" name="assembler" projectFiles="true">
@@ -88,6 +89,7 @@
           <itemPath>mcc_generated_files/src/protected_io.S</itemPath>
           <itemPath>mcc_generated_files/src/tca0.c</itemPath>
           <itemPath>mcc_generated_files/src/twi0_master.c</itemPath>
+          <itemPath>mcc_generated_files/src/spi0.c</itemPath>
         </logicalFolder>
         <itemPath>mcc_generated_files/mcc.c</itemPath>
         <itemPath>mcc_generated_files/device_config.c</itemPath>
@@ -415,7 +417,6 @@
         <property key="memories.programmemory.ranges" value="0-ffff"/>
         <property key="memories.rww" value="true"/>
         <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmerToGoFilePath" value="C:/Users/toemo/dev/repos/tjgarcia-mchp/ml-avr128da48-cnano-imu-data-logger/tmp/firmware/avr128da48-cnano-imu.X/debug/AVR128DA48_CNANO_BMI160/avr128da48-cnano-imu_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges" value="${memories.dataflash.default}"/>
@@ -436,7 +437,7 @@
         <targetDevice>AVR128DA48</targetDevice>
         <targetHeader/>
         <targetPluginBoard/>
-        <platformTool>noID</platformTool>
+        <platformTool>nEdbgTool</platformTool>
         <languageToolchain>XC8</languageToolchain>
         <languageToolchainVersion>2.32</languageToolchainVersion>
         <platform>3</platform>

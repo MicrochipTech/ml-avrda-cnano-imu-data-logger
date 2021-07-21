@@ -46,8 +46,7 @@
 // Section: Platform specific includes
 // *****************************************************************************
 // *****************************************************************************
-#include "mcc_generated_files/spi1.h"
-#include "mcc_generated_files/pin_manager.h"
+#include "mcc_generated_files/mcc.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -76,18 +75,14 @@
 // *****************************************************************************
 // *****************************************************************************
 static int icm42688_spi_read (struct inv_icm426xx_serif * serif, uint8_t reg, uint8_t * rbuffer, uint32_t rlen) {
-    int rval = 0;
+    int rval = INV_ERROR_SUCCESS;
     
     reg = 0x80 | (reg & 0x7F); // Set Read/Write bit in MSB (1 for Read)
     
     MIKRO_CS_Clear();
-    
-    if(!SERCOM0_SPI_Write(&reg, 1)) {
-        rval = -1;
-    }
-    else if(!SERCOM0_SPI_Read(rbuffer, rlen)) {
-        rval = -1;
-    }
+
+    SPI0_WriteBlock(&reg, 1);
+    SPI0_ReadBlock(rbuffer, rlen);
     
     MIKRO_CS_Set();
     
@@ -95,20 +90,17 @@ static int icm42688_spi_read (struct inv_icm426xx_serif * serif, uint8_t reg, ui
 }
 
 static int icm42688_spi_write (struct inv_icm426xx_serif * serif, uint8_t reg, const uint8_t * wbuffer, uint32_t wlen) {
-    int rval = 0;
-    uint8_t *ptr = (uint8_t *) wbuffer; // ignore const (we promise we won't change it)
+    int rval = INV_ERROR_SUCCESS;
+    //uint8_t *ptr = (uint8_t *) wbuffer; // ignore const (we promise we won't change it)
     uint8_t data[2];
     
     for (int i=0; i<wlen; i++) 
     {
         data[0] = reg++ & 0x7F;
         // data[0] |= (0 << 7); // Set Read/Write bit in MSB (0 for Write)
-        data[1] = *ptr++;
+        data[1] = *wbuffer++;
         MIKRO_CS_Clear();
-        if(!SERCOM0_SPI_Write(data, 2)) {
-            rval = -1;
-            break;
-        }
+        SPI0_WriteBlock(data, 2);
         MIKRO_CS_Set();
     }    
     

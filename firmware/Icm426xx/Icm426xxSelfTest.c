@@ -386,7 +386,7 @@ static int average_sensor_output(struct inv_icm426xx * s, int sensor, int self_t
 		status |= inv_icm426xx_write_reg(s, MPUREG_PWR_MGMT_0, 1, &pwr_mgmt_reg);
 
 		/* wait for 60ms to allow output to settle */
-		inv_icm426xx_sleep_us(60*1000);
+		inv_icm426xx_sleep_us(60UL*1000UL);
 	
 	} else if(sensor == INV_ICM426XX_SENSOR_ON_MASK_ACCEL) {
 		data_reg = MPUREG_ACCEL_DATA_X0_UI;
@@ -398,7 +398,7 @@ static int average_sensor_output(struct inv_icm426xx * s, int sensor, int self_t
 		status |= inv_icm426xx_write_reg(s, MPUREG_PWR_MGMT_0, 1, &pwr_mgmt_reg);
 
 		/* wait for 25ms to allow output to settle */
-		inv_icm426xx_sleep_us(25*1000);
+		inv_icm426xx_sleep_us(25UL*1000UL);
 	}
 	else
 		return INV_ERROR_BAD_ARG; /* Invalid sensor provided */
@@ -411,10 +411,10 @@ static int average_sensor_output(struct inv_icm426xx * s, int sensor, int self_t
 
 		if(sensor == INV_ICM426XX_SENSOR_ON_MASK_GYRO)
 			/* wait 200ms for the oscillation to stabilize */
-			inv_icm426xx_sleep_us(200*1000);
+			inv_icm426xx_sleep_us(200UL*1000UL);
 		else 
 			/* wait for 25ms to allow output to settle */
-			inv_icm426xx_sleep_us(25*1000);
+			inv_icm426xx_sleep_us(25UL*1000UL);
 	}
 
 	do {
@@ -446,7 +446,7 @@ static int average_sensor_output(struct inv_icm426xx * s, int sensor, int self_t
 			}
 			it++;
 		}
-		inv_icm426xx_sleep_us(1000);
+		inv_icm426xx_sleep_us(1000UL);
 		timeout--;
 	} while((it < 200) && (timeout > 0));
 
@@ -506,7 +506,7 @@ static int recover_settings(struct inv_icm426xx * s, const struct recover_regs *
 	status |= inv_icm426xx_write_reg(s, MPUREG_FIFO_CONFIG1, 1, &saved_regs->fifo_config1);
 	status |= inv_icm426xx_write_reg(s, MPUREG_ACCEL_GYRO_CONFIG0, 1, &saved_regs->accel_gyro_config0);
 	/* wait 200ms for gyro output to settle */
-	inv_icm426xx_sleep_us(200*1000);
+	inv_icm426xx_sleep_us(200UL*1000UL);
 
 	status |= inv_icm426xx_reset_fifo(s);
 
