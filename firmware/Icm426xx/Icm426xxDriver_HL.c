@@ -405,7 +405,7 @@ int inv_icm426xx_enable_gyro_low_noise_mode(struct inv_icm426xx * s)
 		if (current_time <= s->gyro_power_off_tmst)
 			current_time += UINT32_MAX;
 		/* If 150 ms are not elapsed since power-off error is returned */
-		if ((current_time - s->gyro_power_off_tmst) <= (150 * 1000))
+		if ((current_time - s->gyro_power_off_tmst) <= (150UL * 1000UL))
 			return INV_ERROR_HW;
 	}
 	
@@ -1574,7 +1574,7 @@ uint32_t inv_icm426xx_get_fifo_timestamp_resolution_us_q24(struct inv_icm426xx *
 	int status = 0;
 	uint8_t tmst_cfg_reg;
 	ICM426XX_TMST_CONFIG_RESOL_t tmst_resol;
-	uint32_t scale_factor_q24 = 1<<24;
+	uint32_t scale_factor_q24 = 1UL << 24;
 	
 	status |= inv_icm426xx_read_reg(s, MPUREG_TMST_CONFIG, 1, &tmst_cfg_reg);
 	if (status < 0)
@@ -1602,7 +1602,7 @@ uint32_t inv_icm426xx_get_fifo_timestamp_resolution_us_q24(struct inv_icm426xx *
 
 uint32_t inv_icm426xx_get_reg_timestamp_resolution_us_q24(struct inv_icm426xx * s)
 {
-	uint32_t scale_factor_q24 = 1<<24;
+	uint32_t scale_factor_q24 = 1UL << 24;
 
 	/* RTC is enabled, the resolution of the timestamp is one tick of RTC
 	 * Our RTC runs at 32768 Hz, so resolution is 1/32768 s, or 1000000/32768 us	
