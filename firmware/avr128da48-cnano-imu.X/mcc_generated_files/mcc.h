@@ -40,11 +40,11 @@ extern "C" {
 
 #include "utils/compiler.h"
 #include "include/pin_manager.h"
-#include "include/tca0.h"
 #include "include/twi0_master.h"
-#include "include/usart1.h"
 #include "include/spi0.h"
+#include "include/tca0.h"
 #include "include/cpuint.h"
+#include "include/usart1.h"
 #include "config/clock_config.h"
 
 /**

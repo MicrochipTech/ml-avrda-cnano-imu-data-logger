@@ -166,13 +166,13 @@ int8_t TCA0_Initialize()
     TCA0.SINGLE.INTFLAGS = 0x00;
 
     //Period
-    TCA0.SINGLE.PER = 0xF9;
+    TCA0.SINGLE.PER = 0x3E7;
 
     //Temporary data for 16-bit Access
     TCA0.SINGLE.TEMP = 0x00;
 
-    //RUNSTDBY disabled; CLKSEL DIV16; ENABLE enabled; 
-    TCA0.SINGLE.CTRLA = 0x09;
+    //RUNSTDBY disabled; CLKSEL DIV4; ENABLE enabled; 
+    TCA0.SINGLE.CTRLA = 0x05;
 
     return 0;
 }
