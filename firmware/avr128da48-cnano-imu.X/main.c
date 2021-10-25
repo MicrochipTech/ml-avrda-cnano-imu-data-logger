@@ -128,10 +128,9 @@ void sleep_us(uint32_t us) {
 // For handling read of the sensor data
 void SNSR_ISR_HANDLER() {
     /* Check if any errors we've flagged have been acknowledged */
-    if (sensor.status != SNSR_STATUS_OK || snsr_buffer_overrun) {
+    if ((sensor.status != SNSR_STATUS_OK) || snsr_buffer_overrun)
         return;
-    }
-
+    
     ringbuffer_size_t wrcnt;
     snsr_data_t *ptr = ringbuffer_get_write_buffer(&snsr_buffer, &wrcnt);
     
@@ -154,23 +153,15 @@ size_t ssi_build_json_config(char json_config_str[], size_t maxlen)
             ",\"sample_rate\":%d"
             ",\"samples_per_packet\":%d"
             ",\"column_location\":{"
-            , SSI_JSON_CONFIG_VERSION, SNSR_SAMPLE_RATE_IN_HZ, SNSR_SAMPLES_PER_PACKET);
-#if SNSR_USE_ACCEL_X
+            , SSI_JSON_CONFIG_VERSION, SNSR_SAMPLE_RATE, SNSR_SAMPLES_PER_PACKET);
+#if SNSR_USE_ACCEL
     written += snprintf(json_config_str+written, maxlen-written, "\"AccelerometerX\":%d,", snsr_index++);
-#endif
-#if SNSR_USE_ACCEL_Y
     written += snprintf(json_config_str+written, maxlen-written, "\"AccelerometerY\":%d,", snsr_index++);
-#endif
-#if SNSR_USE_ACCEL_Z
     written += snprintf(json_config_str+written, maxlen-written, "\"AccelerometerZ\":%d,", snsr_index++);
 #endif
-#if SNSR_USE_GYRO_X
+#if SNSR_USE_GYRO
     written += snprintf(json_config_str+written, maxlen-written, "\"GyroscopeX\":%d,", snsr_index++);
-#endif
-#if SNSR_USE_GYRO_Y
     written += snprintf(json_config_str+written, maxlen-written, "\"GyroscopeY\":%d,", snsr_index++);
-#endif
-#if SNSR_USE_GYRO_Z
     written += snprintf(json_config_str+written, maxlen-written, "\"GyroscopeZ\":%d", snsr_index++);
 #endif
     if(json_config_str[written-1] == ',')
@@ -219,10 +210,6 @@ int main ( void )
         if (ringbuffer_init(&uartRxBuffer, _uartRxBuffer_data, sizeof(_uartRxBuffer_data) / sizeof(_uartRxBuffer_data[0]), sizeof(_uartRxBuffer_data[0])))
             break;
 
-        /* Discard any existing UART data */
-        while (UART_IsRxReady())
-            (void) UART_RX_DATA;
-
         /* Enable the RX interrupt */
         UART_RXC_Enable();
 
@@ -238,14 +225,14 @@ int main ( void )
         }
 
         printf("sensor type is %s\n", SNSR_NAME);
-        printf("sensor sample rate set at %dHz\n", SNSR_SAMPLE_RATE_IN_HZ);
+        printf("sensor sample rate set at %dHz\n", SNSR_SAMPLE_RATE);
 #if SNSR_USE_ACCEL
-        printf("accelerometer axes %s%s%s enabled with range set at +/-%dGs\n", SNSR_USE_ACCEL_X ? "x" : "", SNSR_USE_ACCEL_Y ? "y" : "", SNSR_USE_ACCEL_Z ? "z" : "", SNSR_ACCEL_RANGE);
+        printf("accelerometer enabled with range set at +/-%dGs\n", SNSR_ACCEL_RANGE);
 #else
         printf("accelerometer disabled\n");
 #endif
 #if SNSR_USE_GYRO
-        printf("gyrometer axes %s%s%s enabled with range set at %dDPS\n", SNSR_USE_GYRO_X ? "x" : "", SNSR_USE_GYRO_Y ? "y" : "", SNSR_USE_GYRO_Z ? "z" : "", SNSR_GYRO_RANGE);
+        printf("gyrometer enabled with range set at %dDPS\n", SNSR_GYRO_RANGE);
 #else
         printf("gyrometer disabled\n");
 #endif
@@ -332,7 +319,7 @@ int main ( void )
 #if !STREAM_FORMAT_IS(NONE)
         else if(ringbuffer_get_read_items(&snsr_buffer) >= SNSR_SAMPLES_PER_PACKET) {
             ringbuffer_size_t rdcnt;
-            const snsr_dataframe_t *ptr = (const snsr_dataframe_t *) ringbuffer_get_read_buffer(&snsr_buffer, &rdcnt);
+            snsr_dataframe_t const *ptr = (snsr_dataframe_t const *) ringbuffer_get_read_buffer(&snsr_buffer, &rdcnt);
             while (rdcnt >= SNSR_SAMPLES_PER_PACKET) {
     #if STREAM_FORMAT_IS(ASCII)
                 snsr_data_t const *scalarptr = (snsr_data_t const *) ptr;
@@ -364,7 +351,7 @@ int main ( void )
             ringbuffer_size_t rdcnt;
             snsr_dataframe_t const *ptr = ringbuffer_get_read_buffer(&snsr_buffer, &rdcnt);
             while (rdcnt--) {
-                // process sesnsor data
+                // process sensor data
                 ptr++;
                 ringbuffer_advance_read_index(&snsr_buffer, 1);
             }
@@ -389,6 +376,9 @@ int main ( void )
     tickrate = 0;
     LED_ALL_Off();
     LED_RED_On();
+    
+    /* Loop forever on error */
+    while (1) {};
 
     return ( EXIT_FAILURE );
 }

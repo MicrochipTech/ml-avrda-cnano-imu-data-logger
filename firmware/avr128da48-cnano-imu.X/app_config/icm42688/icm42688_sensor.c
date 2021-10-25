@@ -130,22 +130,14 @@ void icm42688_sensor_event_cb(inv_icm426xx_sensor_event_t * event) {
     }
     
     /* Convert sensor data to buffer type and write to buffer */
-#if SNSR_USE_ACCEL_X
+#if SNSR_USE_ACCEL
     *l_snsr_buffer++ = (snsr_data_t) event->accel[0];
-#endif
-#if SNSR_USE_ACCEL_Y
     *l_snsr_buffer++ = (snsr_data_t) event->accel[1];
-#endif
-#if SNSR_USE_ACCEL_Z
     *l_snsr_buffer++ = (snsr_data_t) event->accel[2];
 #endif
-#if SNSR_USE_GYRO_X
+#if SNSR_USE_GYRO
     *l_snsr_buffer++ = (snsr_data_t) event->gyro[0];
-#endif
-#if SNSR_USE_GYRO_Y
     *l_snsr_buffer++ = (snsr_data_t) event->gyro[1];
-#endif
-#if SNSR_USE_GYRO_Z
     *l_snsr_buffer++ = (snsr_data_t) event->gyro[2];
 #endif
 }
@@ -180,10 +172,22 @@ int icm42688_sensor_set_config(struct sensor_device_t *sensor) {
     sensor->status |= inv_icm426xx_enable_clkin_rtc(&sensor->device, false);
 
     // Set sampling parameters
+#if SNSR_SAMPLE_RATE >= 1000
+    /* The FS macros > 1kHz follow the formula: ENUM(sample_rate) = 0x6 - log2(sample_rate/1000) */
+    uint8_t ilog2 = 0;
+    /* Note: sample rate in khz for ICM is always a power of 2 */
+    while ( ((((uint32_t) SNSR_SAMPLE_RATE / 1000U) >> ilog2) & 0x1) == 0 )
+        ilog2++;
+    uint8_t accel_sample_rate = 0x6 - ilog2;
+    uint8_t gyro_sample_rate = accel_sample_rate;
+#else
+    uint8_t accel_sample_rate = _GET_IMU_SAMPLE_RATE_MACRO(ACCEL);
+    uint8_t gyro_sample_rate = _GET_IMU_SAMPLE_RATE_MACRO(GYRO);
+#endif
     sensor->status |= inv_icm426xx_set_accel_fsr(&sensor->device, _GET_IMU_ACCEL_RANGE_MACRO()); //ICM426XX_ACCEL_CONFIG0_FS_SEL_2g);
     sensor->status |= inv_icm426xx_set_gyro_fsr(&sensor->device, _GET_IMU_GYRO_RANGE_MACRO()); //ICM426XX_GYRO_CONFIG0_FS_SEL_2000dps);
-    sensor->status |= inv_icm426xx_set_accel_frequency(&sensor->device, _GET_IMU_SAMPLE_RATE_MACRO(ACCEL)); //ICM426XX_ACCEL_CONFIG0_ODR_100_HZ);
-    sensor->status |= inv_icm426xx_set_gyro_frequency(&sensor->device, _GET_IMU_SAMPLE_RATE_MACRO(GYRO)); //ICM426XX_GYRO_CONFIG0_ODR_100_HZ);
+    sensor->status |= inv_icm426xx_set_accel_frequency(&sensor->device, accel_sample_rate); //ICM426XX_ACCEL_CONFIG0_ODR_100_HZ);
+    sensor->status |= inv_icm426xx_set_gyro_frequency(&sensor->device, gyro_sample_rate); //ICM426XX_GYRO_CONFIG0_ODR_100_HZ);
 
     // Low Noise Mode
     sensor->status |= inv_icm426xx_enable_accel_low_noise_mode(&sensor->device);

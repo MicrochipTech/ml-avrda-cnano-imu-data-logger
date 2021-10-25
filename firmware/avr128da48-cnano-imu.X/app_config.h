@@ -33,7 +33,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "sensor_config.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -65,19 +64,13 @@
 
 // IMU sampling rate in units of SNSR_SAMPLE_RATE_UNIT
 // For BMI160:
-//  - set SNSR_SAMPLE_RATE_UNIT to SNSR_SAMPLE_RATE_UNIT_HZ
 //  - set SNSR_SAMPLE_RATE to one of: 25, 50, 100, 200, 400, 800, 1600
 // For ICM42688 < 1kHz range:
-//  - set SNSR_SAMPLE_RATE_UNIT to SNSR_SAMPLE_RATE_UNIT_HZ
-//  - set SNSR_SAMPLE_RATE to one of: 25, 50, 100, 200, 500
-// For ICM42688 >= 1kHz range:
-//  - set SNSR_SAMPLE_RATE_UNIT to SNSR_SAMPLE_RATE_UNIT_KHZ
-//  - set SNSR_SAMPLE_RATE to one of: 1, 2, 4, 8, 16
+//  - set SNSR_SAMPLE_RATE to one of: 25, 50, 100, 200, 500, 1000, 2000, 4000, 8000, 16000
 // !NB! Increasing the sample rate above 500Hz (this may be lower for non MDV formats)
 // with all 6 axes may cause buffer overruns
 //  - Change at your own risk!
 #define SNSR_SAMPLE_RATE        100
-#define SNSR_SAMPLE_RATE_UNIT   SNSR_SAMPLE_RATE_UNIT_HZ // HZ or KHZ
 
 // Accelerometer range in Gs
 // Either sensor supports one of: 2, 4, 8, 16
@@ -89,12 +82,8 @@
 #define SNSR_GYRO_RANGE         2000
 
 // Define which axes from the IMU to use
-#define SNSR_USE_ACCEL_X        true
-#define SNSR_USE_ACCEL_Y        true
-#define SNSR_USE_ACCEL_Z        true
-#define SNSR_USE_GYRO_X         true
-#define SNSR_USE_GYRO_Y         true
-#define SNSR_USE_GYRO_Z         true
+#define SNSR_USE_ACCEL          true
+#define SNSR_USE_GYRO           true
 
 // Size of sensor buffer in samples (must be power of 2)
 #define SNSR_BUF_LEN            128
@@ -108,7 +97,7 @@
 // SensiML specific parameters
 #if (DATA_STREAMER_FORMAT == DATA_STREAMER_FORMAT_SMLSS)
 #define SML_MAX_CONFIG_STRLEN   256
-#define SNSR_SAMPLES_PER_PACKET 8 // must be factor of SNSR_BUF_LEN
+#define SNSR_SAMPLES_PER_PACKET 8  // must be factor of SNSR_BUF_LEN
 #define SSI_JSON_CONFIG_VERSION 2  // 2 => Use enhance SSI protocol,
                                    // 1 => use original SSI protocol
 #else
@@ -124,12 +113,9 @@
 // Section: Defines derived from user config parameters
 // *****************************************************************************
 // *****************************************************************************
-#define SNSR_NUM_AXES   (SNSR_USE_ACCEL_X + SNSR_USE_ACCEL_Y + SNSR_USE_ACCEL_Z \
-                            + SNSR_USE_GYRO_X + SNSR_USE_GYRO_Y + SNSR_USE_GYRO_Z)
+#define SNSR_NUM_AXES   (3*SNSR_USE_ACCEL + 3*SNSR_USE_GYRO)
 
 /* Define whether multiple sensors types are being used */
-#define SNSR_USE_GYRO   (SNSR_USE_GYRO_X || SNSR_USE_GYRO_Y || SNSR_USE_GYRO_Z)
-#define SNSR_USE_ACCEL  (SNSR_USE_ACCEL_X || SNSR_USE_ACCEL_Y || SNSR_USE_ACCEL_Z)
 #if (SNSR_USE_ACCEL && SNSR_USE_GYRO)
     #define MULTI_SENSOR 1
 #else
