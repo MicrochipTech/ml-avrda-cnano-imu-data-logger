@@ -73,7 +73,7 @@ ISR(USART1_RXC_vect) {
     }
 }
 
-static size_t __attribute__(( unused )) UART_Write(uint8_t *ptr, const size_t nbytes) {
+size_t __attribute__(( unused )) UART_Write(uint8_t *ptr, const size_t nbytes) {
     size_t bytecnt;
     for (bytecnt=0; bytecnt < nbytes; bytecnt++) {
         USART1_Write(*(ptr + bytecnt));
@@ -90,7 +90,7 @@ void Null_Handler() {
     // Do nothing
 }
 
-static size_t __attribute__(( unused )) UART_Read(uint8_t *ptr, const size_t nbytes) {
+size_t __attribute__(( unused )) UART_Read(uint8_t *ptr, const size_t nbytes) {
     return ringbuffer_read(&uartRxBuffer, ptr, nbytes);
 }
 
