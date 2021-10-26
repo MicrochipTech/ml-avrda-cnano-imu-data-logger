@@ -3,6 +3,10 @@
 ## Repository Overview
 This repository contains firmware for streaming up to 6-axes IMU data over UART from the AVR128DA48 Curiosity Nano board with Base board and Mikroe IMU2 or IMU14 Click boards, streaming using one of several formats as described in the sections below.
 
+| ![click boards](assets/click-boards.jpg) |
+| :--: |
+| *Compatible MikroE Click Boards* |
+
 ## Hardware Used
 * AVR128DA48 Curiosity Nano Evaluation Kit [(DM164151)](https://www.microchip.com/Developmenttools/ProductDetails/DM164151)
 * Curiosity Nano Base for Click boards™ [(AC164162)](https://www.microchip.com/developmenttools/ProductDetails/AC164162)
