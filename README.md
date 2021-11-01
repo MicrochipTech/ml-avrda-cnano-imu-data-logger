@@ -25,7 +25,7 @@ This repository contains firmware for streaming up to 6-axes IMU data over UART 
 The steps below explain the process of configuring the the data logger firmware build, compiling it, and flashing it to the AVRDA device.
 
 1. Plug the Curiosity Nano into your PC via USB.
-2. Install the MPLAB X IDE and XC32 compiler. These are required to load the data logger project and to program the AVRDA board.
+2. Install the MPLAB X IDE and XC8 compiler. These are required to load the data logger project and to program the AVRDA board.
 3. Open the `firmware/avr128da48_cnano_imu.X` project folder in MPLAB X.
 4. Select the appropriate MPLAB X Project Configuration for your sensor according to the table below.
    | Sensor Type | MPLAB X Project Configuration Selection |
